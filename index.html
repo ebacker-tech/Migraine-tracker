@@ -625,7 +625,7 @@
   const STORAGE_KEY = 'migraine_v2';
   let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-  const DEFAULT_MEDS = ['Advil', 'Aleve', 'Ubrelvy 100mg (1 tablet)', 'Ubrelvy 100mg (2 tablets)'];
+  const DEFAULT_MEDS = ['Aleve (1 tablet)', 'Aleve (2 tablets)', 'Advil (3 tablets)', 'Ubrelvy 100mg (1 tablet)', 'Ubrelvy 100mg (2 tablets)'];
   let customMeds = JSON.parse(localStorage.getItem('migraine_custom_meds_v2') || '[]');
 
   let currentYear, currentMonth;
