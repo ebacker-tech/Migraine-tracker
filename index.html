@@ -570,7 +570,7 @@
     transition: color 0.15s;
   }
   .tab-btn.active { color: var(--accent); }
-  .tab-icon { font-size: 1.3rem; line-height: 1; }
+  .tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; color: inherit; }
 
   /* ── PAGES ── */
   .page { display: none; }
@@ -780,7 +780,7 @@
     text-transform: uppercase;
   }
   .tab-btn.active { color: var(--accent); }
-  .tab-icon { font-size: 1.3rem; line-height: 1; }
+  .tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; color: inherit; }
 
   /* ── PAGES ── */
   .page { display: none; }
@@ -911,10 +911,25 @@
 
 <div class="tab-bar">
   <button class="tab-btn active" id="tabDash" onclick="switchTab('dash')">
-    <span class="tab-icon">📊</span>Dashboard
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>
+      </svg>
+    </span>Dashboard
   </button>
   <button class="tab-btn" id="tabCal" onclick="switchTab('cal')">
-    <span class="tab-icon">📅</span>Calendar
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><circle cx="8" cy="14" r="1" fill="currentColor"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="16" cy="14" r="1" fill="currentColor"/>
+      </svg>
+    </span>Calendar
+  </button>
+  <button class="tab-btn" id="tabData" onclick="switchTab('data')">
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>
+      </svg>
+    </span>Data
   </button>
 </div>
 
@@ -993,13 +1008,34 @@
 
 <div class="stats" id="statsBar"></div>
 
-<div class="export-wrap">
-  <button class="btn-export" id="exportBtn">⬇︎ &nbsp;Export All Data to CSV</button>
-  <button class="btn-export" id="importBtn" style="margin-top:8px; color: var(--text);">⬆︎ &nbsp;Import from CSV</button>
-  <input type="file" id="importFile" accept=".csv" style="display:none">
-</div>
-
 </div><!-- end #pageCal -->
+
+<!-- ── DATA PAGE ── -->
+<div class="page" id="pageData">
+  <div class="app-header">
+    <div>
+      <h1>Migraine Tracker</h1>
+      <p class="subtitle">Your · Data</p>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">Backup &amp; Restore</div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;line-height:1.6">
+      Export your data regularly to keep a backup. If you ever lose your entries, you can restore them by importing your saved CSV file.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-export" id="exportBtn">⬇︎ &nbsp;Export All Data to CSV</button>
+      <button class="btn-export" id="importBtn" style="color:var(--text);">⬆︎ &nbsp;Import from CSV</button>
+      <input type="file" id="importFile" accept=".csv" style="display:none">
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">Data Summary</div>
+    <div id="dataSummary" style="font-size:0.78rem;color:var(--muted);line-height:2"></div>
+  </div>
+</div>
 
 <!-- BOTTOM SHEET -->
 <div class="overlay" id="overlay">
@@ -1416,9 +1452,33 @@
   function switchTab(tab) {
     document.getElementById('pageDash').classList.toggle('active', tab === 'dash');
     document.getElementById('pageCal').classList.toggle('active', tab === 'cal');
+    document.getElementById('pageData').classList.toggle('active', tab === 'data');
     document.getElementById('tabDash').classList.toggle('active', tab === 'dash');
     document.getElementById('tabCal').classList.toggle('active', tab === 'cal');
+    document.getElementById('tabData').classList.toggle('active', tab === 'data');
     if (tab === 'dash') renderDashboard();
+    if (tab === 'data') renderDataSummary();
+  }
+
+  function renderDataSummary() {
+    const keys = Object.keys(data).sort();
+    const total = keys.length;
+    const earliest = keys[0] || '—';
+    const latest = keys[keys.length - 1] || '—';
+    const avgPain = total
+      ? (keys.reduce((s,k) => s + (data[k].pain||0), 0) / total).toFixed(1)
+      : '—';
+    const lastExport = localStorage.getItem('lastExportDate');
+    const lastExportStr = lastExport
+      ? new Date(parseInt(lastExport)).toLocaleDateString()
+      : 'Never';
+    document.getElementById('dataSummary').innerHTML = `
+      <div>📅 &nbsp;Total entries: <strong style="color:var(--text)">${total}</strong></div>
+      <div>📆 &nbsp;First entry: <strong style="color:var(--text)">${earliest}</strong></div>
+      <div>📆 &nbsp;Latest entry: <strong style="color:var(--text)">${latest}</strong></div>
+      <div>💢 &nbsp;Overall avg pain: <strong style="color:var(--text)">${avgPain}</strong></div>
+      <div>💾 &nbsp;Last export: <strong style="color:var(--text)">${lastExportStr}</strong></div>
+    `;
   }
 
   // ── DASHBOARD CHARTS ──
