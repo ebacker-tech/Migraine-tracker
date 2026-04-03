@@ -651,6 +651,8 @@
 
 <div class="export-wrap">
   <button class="btn-export" id="exportBtn">⬇︎ &nbsp;Export All Data to CSV</button>
+  <button class="btn-export" id="importBtn" style="margin-top:8px; color: var(--text);">⬆︎ &nbsp;Import from CSV</button>
+  <input type="file" id="importFile" accept=".csv" style="display:none">
 </div>
 
 <!-- BOTTOM SHEET -->
@@ -976,6 +978,45 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // ── IMPORT CSV ──
+  document.getElementById('importBtn').addEventListener('click', () => {
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const lines = ev.target.result.split('\n').filter(l => l.trim());
+        // skip header row
+        let imported = 0;
+        for (let i = 1; i < lines.length; i++) {
+          // parse CSV row: Date, Pain Level, Medications, Notes
+          const row = lines[i].match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+          const clean = row.map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+          const date  = clean[0];
+          const pain  = parseInt(clean[1]);
+          const meds  = clean[2] ? clean[2].split(';').map(m => m.trim()).filter(Boolean) : [];
+          const notes = clean[3] || '';
+          if (date && pain) {
+            data[date] = { pain, meds, notes };
+            imported++;
+          }
+        }
+        save();
+        renderCalendar();
+        alert(`✅ Imported ${imported} entries successfully!`);
+      } catch(err) {
+        alert('Could not read the CSV file. Make sure it was exported from this app.');
+      }
+      // reset so same file can be re-imported if needed
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
 
   // ── WEEKLY BACKUP REMINDER ──
   function checkBackupReminder() {
