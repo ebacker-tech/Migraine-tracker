@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Migraine Journal</title>
+<title>Migraine Tracker</title>
 
 <!-- PWA / iOS Home Screen -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -538,13 +538,37 @@
     background: none; border: none; color: var(--muted);
     font-size: 1.1rem; cursor: pointer; padding: 4px;
   }
+
+  /* ── EXPORT BUTTON ── */
+  .export-wrap {
+    margin-top: 14px;
+  }
+  .btn-export {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    padding: 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .btn-export:active { background: var(--surface2); border-color: var(--accent); }
 </style>
 </head>
 <body>
 
 <div class="app-header">
   <div>
-    <h1>Migraine Journal</h1>
+    <h1>Migraine Tracker</h1>
     <p class="subtitle">Track · Analyze · Understand</p>
   </div>
 </div>
@@ -582,6 +606,10 @@
 </div>
 
 <div class="stats" id="statsBar"></div>
+
+<div class="export-wrap">
+  <button class="btn-export" id="exportBtn">⬇︎ &nbsp;Export All Data to CSV</button>
+</div>
 
 <!-- BOTTOM SHEET -->
 <div class="overlay" id="overlay">
@@ -882,6 +910,33 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // ── EXPORT CSV ──
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const rows = Object.keys(data).sort();
+    if (rows.length === 0) {
+      alert('No entries to export yet.');
+      return;
+    }
+    const header = ['Date', 'Pain Level', 'Medications', 'Notes'];
+    const lines = [header.join(',')];
+    rows.forEach(key => {
+      const e = data[key];
+      const date = key;
+      const pain = e.pain || '';
+      const meds = '"' + (e.meds || []).join('; ') + '"';
+      const notes = '"' + (e.notes || '').replace(/"/g, '""') + '"';
+      lines.push([date, pain, meds, notes].join(','));
+    });
+    const csv = lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'migraine-journal.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 
   // ── INIT ──
   renderCalendar();

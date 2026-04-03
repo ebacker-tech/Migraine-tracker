@@ -1,5 +1,5 @@
 {
-  "name": "Migraine Journal",
+  "name": "Migraine Tracker",
   "short_name": "Migraine",
   "description": "Track migraine days with pain levels and medication",
   "start_url": "./index.html",
