@@ -666,10 +666,24 @@
 <script>
   // ── STORAGE KEY (fresh start) ──
   const STORAGE_KEY = 'migraine_v2';
-  let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  // Recover data from any previous storage key versions
+  function loadAllData() {
+    const keys = ['migraine_v1', 'migraine_v2', 'migraine_tracker'];
+    let merged = {};
+    keys.forEach(k => {
+      try {
+        const d = JSON.parse(localStorage.getItem(k) || '{}');
+        Object.assign(merged, d);
+      } catch(e) {}
+    });
+    return merged;
+  }
+  let data = loadAllData();
 
   const DEFAULT_MEDS = ['Aleve (1 tablet)', 'Aleve (2 tablets)', 'Advil (3 tablets)', 'Ubrelvy 100mg (1 tablet)', 'Ubrelvy 100mg (2 tablets)'];
-  let customMeds = JSON.parse(localStorage.getItem('migraine_custom_meds_v2') || '[]');
+  // Also try old custom meds key
+  let customMeds = JSON.parse(localStorage.getItem('migraine_custom_meds_v2') || localStorage.getItem('migraine_custom_meds') || '[]');
 
   let currentYear, currentMonth;
   let selectedKey = null;
