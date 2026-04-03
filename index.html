@@ -562,6 +562,48 @@
     transition: background 0.12s, border-color 0.12s;
   }
   .btn-export:active { background: var(--surface2); border-color: var(--accent); }
+  /* ── BACKUP REMINDER ── */
+  #backupBanner {
+    display: none;
+    position: fixed;
+    top: calc(var(--sat) + 12px);
+    left: 16px; right: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    padding: 14px 16px 14px 16px;
+    z-index: 300;
+    font-size: 0.78rem;
+    color: var(--text);
+    line-height: 1.5;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #backupBanner strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 0.82rem; }
+  .backup-banner-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-backup-export {
+    flex: 1;
+    background: var(--accent);
+    color: #0f0e17;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn-backup-dismiss {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    padding: 10px 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
 </style>
 </head>
 <body>
@@ -653,6 +695,16 @@
       <button class="btn-delete" id="deleteBtn" style="display:none">Delete</button>
       <button class="btn-save" id="saveBtn">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- BACKUP REMINDER -->
+<div id="backupBanner">
+  <strong>💾 Weekly Backup Reminder</strong>
+  It's been 7 days since your last export. Tap below to save a backup of your migraine data!
+  <div class="backup-banner-btns">
+    <button class="btn-backup-export" id="backupExportBtn">Export CSV Now</button>
+    <button class="btn-backup-dismiss" id="backupDismissBtn">Remind Later</button>
   </div>
 </div>
 
@@ -925,35 +977,57 @@
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // ── EXPORT CSV ──
-  document.getElementById('exportBtn').addEventListener('click', () => {
-    const rows = Object.keys(data).sort();
-    if (rows.length === 0) {
-      alert('No entries to export yet.');
-      return;
+  // ── WEEKLY BACKUP REMINDER ──
+  function checkBackupReminder() {
+    const lastExport = localStorage.getItem('lastExportDate');
+    const lastDismiss = localStorage.getItem('backupDismissDate');
+    const now = Date.now();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const hasData = Object.keys(data).length > 0;
+
+    // Show if: has data, and either never exported or exported 7+ days ago,
+    // and not dismissed in the last 7 days
+    const overduExport = !lastExport || (now - parseInt(lastExport)) > sevenDays;
+    const notRecentlyDismissed = !lastDismiss || (now - parseInt(lastDismiss)) > sevenDays;
+
+    if (hasData && overduExport && notRecentlyDismissed) {
+      document.getElementById('backupBanner').style.display = 'block';
     }
+  }
+
+  function doExportCSV() {
+    const rows = Object.keys(data).sort();
+    if (rows.length === 0) { alert('No entries to export yet.'); return; }
     const header = ['Date', 'Pain Level', 'Medications', 'Notes'];
     const lines = [header.join(',')];
     rows.forEach(key => {
       const e = data[key];
-      const date = key;
-      const pain = e.pain || '';
       const meds = '"' + (e.meds || []).join('; ') + '"';
       const notes = '"' + (e.notes || '').replace(/"/g, '""') + '"';
-      lines.push([date, pain, meds, notes].join(','));
+      lines.push([key, e.pain || '', meds, notes].join(','));
     });
     const csv = lines.join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'migraine-journal.csv';
+    a.download = 'migraine-tracker.csv';
     a.click();
     URL.revokeObjectURL(url);
+    localStorage.setItem('lastExportDate', Date.now().toString());
+    document.getElementById('backupBanner').style.display = 'none';
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', doExportCSV);
+  document.getElementById('backupExportBtn').addEventListener('click', doExportCSV);
+  document.getElementById('backupDismissBtn').addEventListener('click', () => {
+    localStorage.setItem('backupDismissDate', Date.now().toString());
+    document.getElementById('backupBanner').style.display = 'none';
   });
 
   // ── INIT ──
   renderCalendar();
+  checkBackupReminder();
 </script>
 </body>
 </html>
