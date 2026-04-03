@@ -59,8 +59,7 @@
     color: var(--text);
     font-family: 'DM Mono', monospace;
     /* full bleed with safe-area padding */
-    padding: calc(var(--sat) + 20px) calc(var(--sar) + 16px) calc(var(--sab) + 80px) calc(var(--sal) + 16px);
-    min-height: 100dvh;
+    padding: calc(var(--sat) + 20px) calc(var(--sar) + 16px) calc(var(--sab) + 90px) calc(var(--sal) + 16px);    min-height: 100dvh;
     background-image:
       radial-gradient(ellipse 80% 50% at 20% 0%, rgba(167,139,250,0.09) 0%, transparent 60%),
       radial-gradient(ellipse 50% 40% at 80% 100%, rgba(225,29,72,0.07) 0%, transparent 50%);
@@ -539,7 +538,153 @@
     font-size: 1.1rem; cursor: pointer; padding: 4px;
   }
 
-  /* ── EXPORT BUTTON ── */
+  /* ── TAB BAR ── */
+  .tab-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(56px + var(--sab));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 8px;
+    z-index: 150;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .tab-btn.active { color: var(--accent); }
+  .tab-icon { font-size: 1.3rem; line-height: 1; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  .dash-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .dash-section-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* bar chart */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 100px;
+    width: 100%;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+    transition: height 0.4s ease;
+  }
+  .bar-label {
+    font-size: 0.5rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+  .bar-val {
+    font-size: 0.55rem;
+    color: var(--text);
+    text-align: center;
+  }
+
+  /* line chart */
+  .line-chart-wrap {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .line-chart-wrap svg {
+    width: 100%;
+    height: 120px;
+    overflow: visible;
+  }
+
+  /* med usage */
+  .med-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .med-bar-label {
+    font-size: 0.68rem;
+    color: var(--text);
+    width: 140px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .med-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .med-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .med-bar-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .no-data-msg {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 20px 0;
+  }
+
   .export-wrap {
     margin-top: 14px;
   }
@@ -604,10 +749,209 @@
     cursor: pointer;
     touch-action: manipulation;
   }
+  /* ── TAB BAR ── */
+  .tab-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(56px + var(--sab));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 150;
+    padding-bottom: var(--sab);
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color 0.15s;
+    -webkit-user-select: none;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .tab-btn.active { color: var(--accent); }
+  .tab-icon { font-size: 1.3rem; line-height: 1; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── DASHBOARD ── */
+  .dash-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .dash-section-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* bar chart */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 110px;
+    width: 100%;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+    transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .bar-val {
+    font-size: 0.52rem;
+    color: var(--text);
+    text-align: center;
+    line-height: 1;
+  }
+  .bar-label {
+    font-size: 0.48rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  /* line chart SVG */
+  .line-chart-wrap {
+    width: 100%;
+    position: relative;
+  }
+  .line-chart-wrap svg {
+    width: 100%;
+    height: 110px;
+    overflow: visible;
+  }
+  .line-x-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .line-x-label {
+    font-size: 0.48rem;
+    color: var(--muted);
+    text-align: center;
+    flex: 1;
+  }
+
+  /* med usage */
+  .med-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .med-bar-label {
+    font-size: 0.65rem;
+    color: var(--text);
+    width: 130px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .med-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .med-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .med-bar-count {
+    font-size: 0.6rem;
+    color: var(--muted);
+    width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .no-data-msg {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 20px 0;
+  }
 </style>
 </head>
 <body>
 
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabDash" onclick="switchTab('dash')">
+    <span class="tab-icon">📊</span>Dashboard
+  </button>
+  <button class="tab-btn" id="tabCal" onclick="switchTab('cal')">
+    <span class="tab-icon">📅</span>Calendar
+  </button>
+</div>
+
+<!-- ── DASHBOARD PAGE ── -->
+<div class="page active" id="pageDash">
+  <div class="app-header">
+    <div>
+      <h1>Migraine Tracker</h1>
+      <p class="subtitle">Month · by · Month</p>
+    </div>
+  </div>
+
+  <!-- Migraine Days per Month -->
+  <div class="dash-section">
+    <div class="dash-section-title">Migraine Days per Month</div>
+    <div class="bar-chart" id="chartDays"></div>
+    <div class="line-x-labels" id="chartDaysLabels"></div>
+  </div>
+
+  <!-- Avg Pain Level per Month -->
+  <div class="dash-section">
+    <div class="dash-section-title">Average Pain Level per Month</div>
+    <div class="line-chart-wrap">
+      <svg id="chartPain" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="line-x-labels" id="chartPainLabels"></div>
+  </div>
+
+  <!-- Medication Usage -->
+  <div class="dash-section">
+    <div class="dash-section-title">Medication Usage (all time)</div>
+    <div id="chartMeds"></div>
+  </div>
+</div>
+
+<!-- ── CALENDAR PAGE ── -->
+<div class="page" id="pageCal">
 <div class="app-header">
   <div>
     <h1>Migraine Tracker</h1>
@@ -654,6 +998,8 @@
   <button class="btn-export" id="importBtn" style="margin-top:8px; color: var(--text);">⬆︎ &nbsp;Import from CSV</button>
   <input type="file" id="importFile" accept=".csv" style="display:none">
 </div>
+
+</div><!-- end #pageCal -->
 
 <!-- BOTTOM SHEET -->
 <div class="overlay" id="overlay">
@@ -1066,8 +1412,200 @@
     document.getElementById('backupBanner').style.display = 'none';
   });
 
+  // ── TAB SWITCHING ──
+  function switchTab(tab) {
+    document.getElementById('pageDash').classList.toggle('active', tab === 'dash');
+    document.getElementById('pageCal').classList.toggle('active', tab === 'cal');
+    document.getElementById('tabDash').classList.toggle('active', tab === 'dash');
+    document.getElementById('tabCal').classList.toggle('active', tab === 'cal');
+    if (tab === 'dash') renderDashboard();
+  }
+
+  // ── DASHBOARD CHARTS ──
+  function getLast12Months() {
+    const months = [];
+    const d = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+      months.push({
+        year: m.getFullYear(),
+        month: m.getMonth(),
+        label: m.toLocaleString('default', { month: 'short' })
+      });
+    }
+    return months;
+  }
+
+  function getMonthData(year, month) {
+    const prefix = `${year}-${String(month+1).padStart(2,'0')}`;
+    const keys = Object.keys(data).filter(k => k.startsWith(prefix));
+    const days = keys.length;
+    const avgPain = days ? (keys.reduce((s,k) => s + (data[k].pain||0), 0) / days) : null;
+    const meds = {};
+    keys.forEach(k => (data[k].meds||[]).forEach(m => { meds[m] = (meds[m]||0)+1; }));
+    return { days, avgPain, meds };
+  }
+
+  function renderDashboard() {
+    const months = getLast12Months();
+    const monthData = months.map(m => ({ ...m, ...getMonthData(m.year, m.month) }));
+    const hasAny = monthData.some(m => m.days > 0);
+
+    // ── BAR CHART: migraine days ──
+    const maxDays = Math.max(...monthData.map(m => m.days), 1);
+    const daysChart = document.getElementById('chartDays');
+    const daysLabels = document.getElementById('chartDaysLabels');
+    daysChart.innerHTML = '';
+    daysLabels.innerHTML = '';
+
+    monthData.forEach(m => {
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      const pct = (m.days / maxDays) * 90;
+      const painColor = m.avgPain ? getPainColor(Math.round(m.avgPain)) : 'var(--accent)';
+      col.innerHTML = `
+        <div class="bar-val">${m.days > 0 ? m.days : ''}</div>
+        <div class="bar" style="height:${pct}%;background:${painColor};opacity:0.85"></div>
+      `;
+      daysChart.appendChild(col);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'line-x-label';
+      lbl.textContent = m.label;
+      daysLabels.appendChild(lbl);
+    });
+
+    if (!hasAny) {
+      daysChart.innerHTML = '<div class="no-data-msg">No data yet — start logging migraine days!</div>';
+    }
+
+    // ── LINE CHART: avg pain ──
+    const svg = document.getElementById('chartPain');
+    const painLabels = document.getElementById('chartPainLabels');
+    svg.innerHTML = '';
+    painLabels.innerHTML = '';
+
+    const painPoints = monthData.map((m, i) => ({ i, val: m.avgPain, label: m.label }));
+    const validPoints = painPoints.filter(p => p.val !== null);
+
+    if (validPoints.length >= 2) {
+      const W = 300, H = 100, pad = 10;
+      const maxPain = 10;
+      const xStep = (W - pad*2) / (months.length - 1);
+
+      // grid lines
+      [2,4,6,8,10].forEach(v => {
+        const y = pad + (1 - v/maxPain) * (H - pad*2);
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', pad); line.setAttribute('x2', W-pad);
+        line.setAttribute('y1', y); line.setAttribute('y2', y);
+        line.setAttribute('stroke', '#2e2b42'); line.setAttribute('stroke-width', '0.5');
+        svg.appendChild(line);
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x', 2); txt.setAttribute('y', y+3);
+        txt.setAttribute('font-size','6'); txt.setAttribute('fill','#7c7a8e');
+        txt.textContent = v;
+        svg.appendChild(txt);
+      });
+
+      // area fill
+      const pts = painPoints.map(p => {
+        const x = pad + p.i * xStep;
+        const y = p.val !== null ? pad + (1 - p.val/maxPain) * (H - pad*2) : null;
+        return { x, y };
+      });
+
+      // build path for valid segments
+      let pathD = '';
+      let areaD = '';
+      let firstValid = null;
+      pts.forEach((pt, i) => {
+        if (pt.y !== null) {
+          if (firstValid === null) { pathD += `M ${pt.x} ${pt.y}`; firstValid = pt; }
+          else pathD += ` L ${pt.x} ${pt.y}`;
+        }
+      });
+
+      // area
+      const validPts = pts.filter(p => p.y !== null);
+      if (validPts.length >= 2) {
+        areaD = `M ${validPts[0].x} ${H-pad} L ${validPts[0].x} ${validPts[0].y}`;
+        validPts.forEach(p => { areaD += ` L ${p.x} ${p.y}`; });
+        areaD += ` L ${validPts[validPts.length-1].x} ${H-pad} Z`;
+        const area = document.createElementNS('http://www.w3.org/2000/svg','path');
+        area.setAttribute('d', areaD);
+        area.setAttribute('fill', 'rgba(167,139,250,0.1)');
+        svg.appendChild(area);
+      }
+
+      // line
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','#a78bfa');
+      path.setAttribute('stroke-width','1.5');
+      path.setAttribute('stroke-linejoin','round');
+      svg.appendChild(path);
+
+      // dots + values
+      pts.forEach(pt => {
+        if (pt.y === null) return;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', pt.x); circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r','3'); circle.setAttribute('fill','#a78bfa');
+        svg.appendChild(circle);
+      });
+    } else {
+      svg.innerHTML = `<text x="150" y="55" text-anchor="middle" fill="#7c7a8e" font-size="10" font-family="DM Mono">Not enough data yet</text>`;
+    }
+
+    painPoints.forEach(p => {
+      const lbl = document.createElement('div');
+      lbl.className = 'line-x-label';
+      lbl.textContent = p.label;
+      painLabels.appendChild(lbl);
+    });
+
+    // ── MED USAGE BARS ──
+    const medTotals = {};
+    Object.values(data).forEach(entry => {
+      (entry.meds||[]).forEach(m => { medTotals[m] = (medTotals[m]||0)+1; });
+    });
+    const medChart = document.getElementById('chartMeds');
+    medChart.innerHTML = '';
+    const sortedMeds = Object.entries(medTotals).sort((a,b) => b[1]-a[1]);
+    if (sortedMeds.length === 0) {
+      medChart.innerHTML = '<div class="no-data-msg">No medication data yet</div>';
+    } else {
+      const maxCount = sortedMeds[0][1];
+      sortedMeds.forEach(([med, count]) => {
+        const row = document.createElement('div');
+        row.className = 'med-bar-row';
+        const pct = (count / maxCount) * 100;
+        const color = medColor(med);
+        row.innerHTML = `
+          <div class="med-bar-label">${med}</div>
+          <div class="med-bar-track">
+            <div class="med-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <div class="med-bar-count">${count}</div>
+        `;
+        medChart.appendChild(row);
+      });
+    }
+  }
+
+  function getPainColor(level) {
+    const colors = {
+      1:'#34d399',2:'#6ee7b7',3:'#a3e635',4:'#facc15',5:'#fb923c',
+      6:'#f97316',7:'#ef4444',8:'#dc2626',9:'#be123c',10:'#9b1c4a'
+    };
+    return colors[level] || 'var(--accent)';
+  }
+
   // ── INIT ──
   renderCalendar();
+  renderDashboard();
   checkBackupReminder();
 </script>
 </body>
