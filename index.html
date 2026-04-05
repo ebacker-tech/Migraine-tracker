@@ -52,18 +52,16 @@
   html, body {
     height: 100%;
     overscroll-behavior: none;
+    overflow: hidden;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Mono', monospace;
-    /* full bleed with safe-area padding */
-    padding: calc(var(--sat) + 20px) calc(var(--sar) + 16px) calc(var(--sab) + 90px) calc(var(--sal) + 16px);    min-height: 100dvh;
     background-image:
       radial-gradient(ellipse 80% 50% at 20% 0%, rgba(167,139,250,0.09) 0%, transparent 60%),
       radial-gradient(ellipse 50% 40% at 80% 100%, rgba(225,29,72,0.07) 0%, transparent 50%);
-    overflow-x: hidden;
   }
 
   /* ── HEADER ── */
@@ -573,7 +571,15 @@
   .tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; color: inherit; }
 
   /* ── PAGES ── */
-  .page { display: none; }
+  .page {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    bottom: calc(56px + var(--sab));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: calc(var(--sat) + 20px) calc(var(--sar) + 16px) 24px calc(var(--sal) + 16px);
+  }
   .page.active { display: block; }
 
   /* ── DASHBOARD ── */
@@ -782,9 +788,7 @@
   .tab-btn.active { color: var(--accent); }
   .tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; color: inherit; }
 
-  /* ── PAGES ── */
-  .page { display: none; }
-  .page.active { display: block; }
+
 
   /* ── DASHBOARD ── */
   .dash-section {
@@ -963,6 +967,12 @@
     <div class="dash-section-title">Medication Usage (all time)</div>
     <div id="chartMeds"></div>
   </div>
+
+  <!-- Trigger Frequency -->
+  <div class="dash-section">
+    <div class="dash-section-title">Top Triggers (all time)</div>
+    <div id="chartTriggers"></div>
+  </div>
 </div>
 
 <!-- ── CALENDAR PAGE ── -->
@@ -1070,6 +1080,15 @@
     </div>
 
     <div class="field">
+      <label>Triggers</label>
+      <div class="med-list" id="triggerList"></div>
+      <div class="custom-med-row">
+        <input type="text" id="customTriggerInput" placeholder="Add custom trigger…">
+        <button class="add-btn" id="addTriggerBtn">+ Add</button>
+      </div>
+    </div>
+
+    <div class="field">
       <label>Notes</label>
       <textarea id="notesInput" placeholder="Triggers, symptoms, how you're feeling…" rows="3"></textarea>
     </div>
@@ -1118,13 +1137,16 @@
   let data = loadAllData();
 
   const DEFAULT_MEDS = ['Aleve (1 tablet)', 'Aleve (2 tablets)', 'Advil (3 tablets)', 'Ubrelvy 100mg (1 tablet)', 'Ubrelvy 100mg (2 tablets)'];
-  // Also try old custom meds key
   let customMeds = JSON.parse(localStorage.getItem('migraine_custom_meds_v2') || localStorage.getItem('migraine_custom_meds') || '[]');
+
+  const DEFAULT_TRIGGERS = ['Lack of Sleep', 'Food', 'Sugar', 'Stress', 'Weather', 'Period', 'Jet Lag'];
+  let customTriggers = JSON.parse(localStorage.getItem('migraine_custom_triggers') || '[]');
 
   let currentYear, currentMonth;
   let selectedKey = null;
   let selectedPain = 0;
   let selectedMeds = new Set();
+  let selectedTriggers = new Set();
 
   const now = new Date();
   currentYear = now.getFullYear();
@@ -1134,6 +1156,7 @@
   function dateKey(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
   function saveMeds() { localStorage.setItem('migraine_custom_meds_v2', JSON.stringify(customMeds)); }
+  function saveTriggers() { localStorage.setItem('migraine_custom_triggers', JSON.stringify(customTriggers)); }
 
   const MONTH_NAMES = ['January','February','March','April','May','June',
                        'July','August','September','October','November','December'];
@@ -1230,6 +1253,29 @@
 
   // ── SHEET ──
   function allMeds() { return [...DEFAULT_MEDS, ...customMeds]; }
+  function allTriggers() { return [...DEFAULT_TRIGGERS, ...customTriggers]; }
+
+  function renderTriggerList() {
+    const list = document.getElementById('triggerList');
+    list.innerHTML = '';
+    allTriggers().forEach(trigger => {
+      const lbl = document.createElement('label');
+      lbl.className = 'med-check';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = trigger;
+      if (selectedTriggers.has(trigger)) cb.checked = true;
+      cb.addEventListener('change', () => {
+        if (cb.checked) selectedTriggers.add(trigger); else selectedTriggers.delete(trigger);
+      });
+      const box = document.createElement('div');
+      box.className = 'cb';
+      lbl.appendChild(cb);
+      lbl.appendChild(box);
+      lbl.appendChild(document.createTextNode(trigger));
+      list.appendChild(lbl);
+    });
+  }
 
   function renderMedList() {
     const list = document.getElementById('medList');
@@ -1257,6 +1303,7 @@
     selectedKey = key;
     selectedPain = 0;
     selectedMeds = new Set();
+    selectedTriggers = new Set();
 
     const entry = data[key];
     document.getElementById('sheetDate').textContent =
@@ -1267,6 +1314,7 @@
     if (entry) {
       selectedPain = entry.pain || 0;
       (entry.meds||[]).forEach(m => selectedMeds.add(m));
+      (entry.triggers||[]).forEach(t => selectedTriggers.add(t));
     }
 
     document.querySelectorAll('.pain-btn').forEach(btn => {
@@ -1274,9 +1322,10 @@
     });
 
     renderMedList();
+    renderTriggerList();
     document.getElementById('customMedInput').value = '';
+    document.getElementById('customTriggerInput').value = '';
     document.getElementById('overlay').classList.add('open');
-    // scroll sheet to top
     document.getElementById('sheet').scrollTop = 0;
   }
 
@@ -1310,11 +1359,25 @@
     data[selectedKey] = {
       pain: selectedPain,
       meds: [...selectedMeds],
+      triggers: [...selectedTriggers],
       notes: document.getElementById('notesInput').value.trim(),
     };
     save();
     closeSheet();
     renderCalendar();
+  });
+
+  document.getElementById('addTriggerBtn').addEventListener('click', () => {
+    const val = document.getElementById('customTriggerInput').value.trim();
+    if (!val) return;
+    if (!allTriggers().includes(val)) { customTriggers.push(val); saveTriggers(); }
+    selectedTriggers.add(val);
+    renderTriggerList();
+    document.getElementById('customTriggerInput').value = '';
+  });
+
+  document.getElementById('customTriggerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('addTriggerBtn').click();
   });
 
   document.getElementById('deleteBtn').addEventListener('click', () => {
@@ -1421,13 +1484,14 @@
   function doExportCSV() {
     const rows = Object.keys(data).sort();
     if (rows.length === 0) { alert('No entries to export yet.'); return; }
-    const header = ['Date', 'Pain Level', 'Medications', 'Notes'];
+    const header = ['Date', 'Pain Level', 'Medications', 'Triggers', 'Notes'];
     const lines = [header.join(',')];
     rows.forEach(key => {
       const e = data[key];
       const meds = '"' + (e.meds || []).join('; ') + '"';
+      const triggers = '"' + (e.triggers || []).join('; ') + '"';
       const notes = '"' + (e.notes || '').replace(/"/g, '""') + '"';
-      lines.push([key, e.pain || '', meds, notes].join(','));
+      lines.push([key, e.pain || '', meds, triggers, notes].join(','));
     });
     const csv = lines.join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -1651,6 +1715,33 @@
           <div class="med-bar-count">${count}</div>
         `;
         medChart.appendChild(row);
+      });
+    }
+
+    // ── TRIGGER FREQUENCY BARS ──
+    const triggerTotals = {};
+    Object.values(data).forEach(entry => {
+      (entry.triggers||[]).forEach(t => { triggerTotals[t] = (triggerTotals[t]||0)+1; });
+    });
+    const triggerChart = document.getElementById('chartTriggers');
+    triggerChart.innerHTML = '';
+    const sortedTriggers = Object.entries(triggerTotals).sort((a,b) => b[1]-a[1]);
+    if (sortedTriggers.length === 0) {
+      triggerChart.innerHTML = '<div class="no-data-msg">No trigger data yet</div>';
+    } else {
+      const maxTCount = sortedTriggers[0][1];
+      sortedTriggers.forEach(([trigger, count]) => {
+        const row = document.createElement('div');
+        row.className = 'med-bar-row';
+        const pct = (count / maxTCount) * 100;
+        row.innerHTML = `
+          <div class="med-bar-label">${trigger}</div>
+          <div class="med-bar-track">
+            <div class="med-bar-fill" style="width:${pct}%;background:var(--accent)"></div>
+          </div>
+          <div class="med-bar-count">${count}</div>
+        `;
+        triggerChart.appendChild(row);
       });
     }
   }
