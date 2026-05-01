@@ -1947,7 +1947,7 @@
   // ── INIT ──
   renderCalendar();
   checkBackupReminder();
-  requestAnimationFrame(() => renderDashboard());
+  setTimeout(() => renderDashboard(), 50);
 </script>
 </body>
 </html>
