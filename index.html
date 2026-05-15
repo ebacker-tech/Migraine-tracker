@@ -1947,7 +1947,14 @@
   // ── INIT ──
   renderCalendar();
   checkBackupReminder();
-  setTimeout(() => renderDashboard(), 50);
+  setTimeout(() => renderDashboard(), 200);
+
+  // Re-render dashboard when app is foregrounded (PWA home screen launch fix)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && document.getElementById('pageDash').classList.contains('active')) {
+      renderDashboard();
+    }
+  });
 </script>
 </body>
 </html>
