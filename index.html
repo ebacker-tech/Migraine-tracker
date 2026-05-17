@@ -625,7 +625,6 @@
     width: 100%;
     border-radius: 4px 4px 0 0;
     min-height: 2px;
-    transition: height 0.4s ease;
   }
   .bar-label {
     font-size: 0.5rem;
@@ -833,7 +832,6 @@
     width: 100%;
     border-radius: 4px 4px 0 0;
     min-height: 2px;
-    transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1);
   }
   .bar-val {
     font-size: 0.52rem;
@@ -912,16 +910,13 @@
   /* ── CYCLE INDICATORS ── */
   .day.cycle-period {
     background: var(--cycle-period-bg);
-    border-color: var(--cycle-period) !important;
   }
   .day.cycle-spotting {
     background: var(--cycle-spotting-bg);
-    border-color: var(--cycle-spotting) !important;
   }
   /* period overrides spotting when both somehow set */
   .day.cycle-period.cycle-spotting {
     background: var(--cycle-period-bg);
-    border-color: var(--cycle-period) !important;
   }
   .cycle-dot {
     position: absolute;
@@ -1325,14 +1320,12 @@
       const cd = cycleData[key];
       if (cd && cd.type === 'period') {
         cell.classList.add('cycle-period');
-        if (!entry) cell.style.border = '1.5px solid var(--cycle-period)';
         const dot = document.createElement('div');
         dot.className = 'cycle-dot';
         dot.textContent = cd.flow === 'heavy' ? '🔴' : cd.flow === 'medium' ? '🩸' : '💧';
         cell.appendChild(dot);
       } else if (cd && cd.type === 'spotting') {
         cell.classList.add('cycle-spotting');
-        if (!entry) cell.style.border = '1.5px solid var(--cycle-spotting)';
         const dot = document.createElement('div');
         dot.className = 'cycle-dot spotting-star';
         dot.textContent = '✦';
@@ -1732,6 +1725,8 @@
   }
 
   function renderDashboard() {
+    const daysChartCheck = document.getElementById('chartDays');
+    if (!daysChartCheck) return;
     const months = getLast12Months();
     const monthData = months.map(m => ({ ...m, ...getMonthData(m.year, m.month) }));
     const hasAny = monthData.some(m => m.days > 0);
@@ -1947,9 +1942,18 @@
   // ── INIT ──
   renderCalendar();
   checkBackupReminder();
-  setTimeout(() => renderDashboard(), 200);
 
-  // Re-render dashboard when app is foregrounded (PWA home screen launch fix)
+  // Render dashboard after DOM is ready — handles all PWA launch scenarios
+  function initDashboard() {
+    if (document.getElementById('chartDays')) {
+      renderDashboard();
+    } else {
+      setTimeout(initDashboard, 50);
+    }
+  }
+  setTimeout(initDashboard, 0);
+
+  // Re-render when app is foregrounded from home screen
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && document.getElementById('pageDash').classList.contains('active')) {
       renderDashboard();
